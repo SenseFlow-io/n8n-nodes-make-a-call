@@ -5,7 +5,7 @@ export class HttpBin implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'HttpBin',
 		name: 'httpBin',
-		icon: { light: 'file:logo-medium.png', dark: 'file:logo-medium.png' },
+		icon: { light: 'file:logo.png', dark: 'file:logo.png' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',

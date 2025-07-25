@@ -10,7 +10,7 @@ export class SenseFlowApi implements ICredentialType {
 	name = 'senseFlowApi';
 	displayName = 'SenseFlow API';
 	documentationUrl = 'https://app.senseflow.io/integrations';
-	icon: Icon = "file:logo-medium.png";
+	icon: Icon = "file:logo.png";
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API Key',
