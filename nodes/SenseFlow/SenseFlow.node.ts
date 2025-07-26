@@ -16,14 +16,14 @@ export class SenseFlow implements INodeType {
 			light: 'file:logo.png',
 			dark: 'file:logo.png',
 		},
-		group: ['transform'],
+		group: ['communication'],
 		version: 1,
 		description: 'SenseFlow Node - Voice agent telephony at your fingertips',
 		defaults: {
 			name: 'SenseFlow',
 		},
-		inputs: [NodeConnectionType.Main], // What does this mean?
-		outputs: [NodeConnectionType.Main], // What does this mean?
+		inputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main],
 		usableAsTool: true,
 			credentials: [
 		{
