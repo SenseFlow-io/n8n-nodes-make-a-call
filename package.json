@@ -1,5 +1,5 @@
 {
-  "name": "n8n-nodes-make-a-call",
+  "name": "n8n-nodes-senseflow",
   "version": "0.1.0",
   "description": "",
   "keywords": [
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/SenseFlow-io/n8n-nodes-make-a-call.git"
+    "url": "https://github.com/SenseFlow-io/n8n-nodes-senseflow.git"
   },
   "engines": {
     "node": ">=20.15"
