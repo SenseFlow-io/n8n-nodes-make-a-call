@@ -60,6 +60,8 @@ When making a phone call, you'll need to provide:
 - **Goal**: The desired outcome that the agent should try to achieve
 - **Context**: Additional relevant information to help the agent conduct the call
 
+**Note**: Our system includes safety measures to prevent spam, telemarketing, and fraud. If you believe your legitimate call was incorrectly flagged, please contact us for assistance.
+
 ### Simple scenario - Making a phone call and waiting for result
 
 1. Use the "Make a Phone Call" operation in the SenseFlow node.
@@ -87,5 +89,3 @@ For new users, check out the [Try it out](https://docs.n8n.io/try-it-out/) docum
 * [n8n community nodes documentation](https://docs.n8n.io/integrations/#community-nodes)
 * [SenseFlow API Documentation](https://app.senseflow.io/integrations)
 * [SenseFlow Platform](https://app.senseflow.io)
-
-
