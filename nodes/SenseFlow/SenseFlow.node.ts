@@ -7,6 +7,7 @@ import type {
 	IDataObject,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
+import { setTimeout as delay } from 'node:timers/promises';
 
 interface StartCallPayload extends IDataObject {
     to_number: string;
@@ -79,7 +80,7 @@ async function waitForPhoneCallCompletion(
 			throw new NodeOperationError(this.getNode(), 'Waiting for phone call result timed out');
 		}
 
-		await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+		await delay(pollingInterval);
 	}
 }
 
