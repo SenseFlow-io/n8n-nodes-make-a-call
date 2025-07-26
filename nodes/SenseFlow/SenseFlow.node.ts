@@ -5,6 +5,7 @@ import type {
 	INodeTypeDescription,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
+import { startPhoneCall, waitForPhoneCallCompletion } from './senseflow-api';
 
 export class SenseFlow implements INodeType {
 	description: INodeTypeDescription = {
@@ -20,32 +21,49 @@ export class SenseFlow implements INodeType {
 		outputs: [NodeConnectionType.Main], // What does this mean?
 		usableAsTool: true,
 		properties: [
-
-			/* 1 — Choosing an operation */
 			{
 				displayName: 'Operation',
 				name: 'operation',
 				type: 'options',
-				displayOptions: { show: { resource: ['job'] } },
-				/* “action” label is what n8n shows in the left sidebar */
 				options: [
-					{ name: 'Make a Phone Call',  value: 'makePhoneCall', description: 'Make a phone call and wait for the result', action: 'Make a phone call' },
-					{ name: 'Start a Phone Call',  value: 'startPhoneCall', action: 'Start a phone call' },
-					{ name: 'Wait for Call Result', value: 'waitForCallResult', action: 'Wait for a phone call to end' },
+					{ name: 'Make a Phone Call',  value: 'makePhoneCall', description: 'Start a phone call and wait until it has completed', action: 'Make a phone call' },
+					{ name: 'Start a Phone Call',  value: 'startPhoneCall', description: 'Start a phone call without waiting for it to complete', action: 'Start a phone call' },
+					{ name: 'Wait for Call Result', value: 'waitForCallResult', description: 'Wait until the previously-started phone call has completed', action: 'Wait for a phone call to end' },
 				],
-				noDataExpression: true,
 				default: 'makePhoneCall',
+				noDataExpression: true,
 			},
 
-			// Node properties which the user gets displayed and
-			// can change on the node.
+			// Phone Number (required when starting a call)
 			{
-				displayName: 'My String',
-				name: 'myString',
+				displayName: 'Phone Number',
+				name: 'phoneNumber',
 				type: 'string',
+				required: true,
 				default: '',
-				placeholder: 'Placeholder value',
-				description: 'The description text',
+				placeholder: '+15551234567',
+				description: 'Number to call in E.164 format',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			// Call ID (required when waiting for a call)
+			{
+				displayName: 'Call ID',
+				name: 'callId',
+				type: 'string',
+				required: true,
+				default: '',
+				placeholder: '8f41d9f3-c1e4-4d0d-93ff-e70bc5b6b6a1',
+				description: 'Identifier returned by the "Start a Phone Call" operation',
+				displayOptions: {
+					show: {
+						operation: ['waitForCallResult'],
+					},
+				},
 			},
 		],
 	};
@@ -56,39 +74,61 @@ export class SenseFlow implements INodeType {
 	// You can make async calls and use `await`.
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
+		const returnItems: INodeExecutionData[] = [];
 
-		let item: INodeExecutionData;
-		let myString: string;
-
-		// Iterates over all input items and add the key "myString" with the
-		// value the parameter "myString" resolves to.
-		// (This could be a different value for each item in case it contains an expression)
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
-			try {
-				myString = this.getNodeParameter('myString', itemIndex, '') as string;
-				item = items[itemIndex];
+			const item = items[itemIndex];
 
-				item.json.myString = myString;
-			} catch (error) {
-				// This node should never fail but we want to showcase how
-				// to handle errors.
-				if (this.continueOnFail()) {
-					items.push({ json: this.getInputData(itemIndex)[0].json, error, pairedItem: itemIndex });
-				} else {
-					// Adding `itemIndex` allows other workflows to handle this error
-					if (error.context) {
-						// If the error thrown already contains the context property,
-						// only append the itemIndex
-						error.context.itemIndex = itemIndex;
-						throw error;
-					}
-					throw new NodeOperationError(this.getNode(), error, {
-						itemIndex,
+			try {
+				const operation = this.getNodeParameter('operation', itemIndex) as string;
+
+				if (operation === 'makePhoneCall') {
+					const phoneNumber = this.getNodeParameter('phoneNumber', itemIndex) as string;
+
+					// 1) Start the call, 2) wait for completion
+					const callId = await startPhoneCall.call(this, phoneNumber);
+					const result = await waitForPhoneCallCompletion.call(this, callId);
+
+					returnItems.push({
+						json: {
+							...item.json,
+							callId,
+							...result,
+						},
 					});
+				} else if (operation === 'startPhoneCall') {
+					const phoneNumber = this.getNodeParameter('phoneNumber', itemIndex) as string;
+					const callId = await startPhoneCall.call(this, phoneNumber);
+
+					returnItems.push({
+						json: {
+							...item.json,
+							callId,
+						},
+					});
+				} else if (operation === 'waitForCallResult') {
+					const callId = this.getNodeParameter('callId', itemIndex) as string;
+					const result = await waitForPhoneCallCompletion.call(this, callId);
+
+					returnItems.push({
+						json: {
+							...item.json,
+							callId,
+							...result,
+						},
+					});
+				} else {
+					throw new NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`, { itemIndex });
+				}
+			} catch (error) {
+				if (this.continueOnFail()) {
+					returnItems.push({ json: { ...items[itemIndex].json }, error, pairedItem: itemIndex });
+				} else {
+					throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
 				}
 			}
 		}
 
-		return [items];
+		return [returnItems];
 	}
 }
