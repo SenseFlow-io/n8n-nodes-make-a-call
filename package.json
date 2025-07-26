@@ -1,12 +1,12 @@
 {
-  "name": "n8n-nodes-senseflow",
+  "name": "@senseflow-io/n8n-nodes-senseflow",
   "version": "0.1.0",
-  "description": "",
+  "description": "n8n community node for SenseFlow - simple agentic phone calls",
   "keywords": [
     "n8n-community-node-package"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://github.com/SenseFlow-io/n8n-nodes-senseflow",
   "author": {
     "name": "SenseFlow, Inc.",
     "email": "call-me-maybe@senseflow.io"
@@ -33,13 +33,10 @@
   "n8n": {
     "n8nNodesApiVersion": 1,
     "credentials": [
-      "dist/credentials/ExampleCredentialsApi.credentials.js",
-      "dist/credentials/HttpBinApi.credentials.js",
       "dist/credentials/SenseFlowApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/ExampleNode/ExampleNode.node.js",
-      "dist/nodes/HttpBin/HttpBin.node.js"
+      "dist/nodes/SenseFlow/SenseFlow.node.js"
     ]
   },
   "devDependencies": {
