@@ -4,9 +4,84 @@ import type {
 	INodeType,
 	INodeTypeDescription,
 	NodeApiError,
+	IDataObject,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
-import { startPhoneCall, waitForPhoneCallCompletion } from './senseflow-api';
+
+interface StartCallPayload extends IDataObject {
+    to_number: string;
+    language: string;
+    first_message?: string;
+    on_behalf_of?: string;
+    goal?: string;
+    context?: string;
+}
+
+const SENSEFLOW_API_BASE = 'https://app.senseflow.io';
+
+/**
+ * Starts a phone call by POST-ing the full call specification to the SenseFlow REST API.
+ *
+ * @param this        n8n execution context (make sure to `.call(this, ...)` when invoking)
+ * @param payload     The full call payload as required by SenseFlow
+ *
+ * @returns The unique identifier (`id`) of the created phone-call job
+ */
+async function startPhoneCall(this: IExecuteFunctions, payload: StartCallPayload): Promise<string> {
+	const requestOptions = {
+		method: 'POST' as const,
+		url: `${SENSEFLOW_API_BASE}/api/phone-call/`,
+		body: payload as IDataObject,
+		json: true,
+	};
+
+	const response = (await this.helpers.httpRequestWithAuthentication.call(this, "senseFlowApi", requestOptions)) as {
+		id: string;
+	};
+
+	return response.id;
+}
+
+/**
+ * Polls SenseFlow for the status of a phone call until it is completed (or a timeout is reached).
+ *
+ * @param this            n8n execution context (make sure to `.call(this, ...)` when invoking)
+ * @param callId          The identifier returned by {@link startPhoneCall}
+ * @param pollingInterval How often to poll (in milliseconds). Defaults to 5 seconds.
+ * @param timeout         Maximum time to wait (in milliseconds). Defaults to 5 minutes.
+ *
+ * @returns The final payload returned by the SenseFlow API for the completed call
+ */
+async function waitForPhoneCallCompletion(
+	this: IExecuteFunctions,
+	callId: string,
+	pollingInterval = 5000,
+	timeout = 5 * 60 * 1000,
+): Promise<IDataObject> {
+	const startedAt = Date.now();
+
+	while (true) {
+		const requestOptions = {
+			method: 'GET' as const,
+			url: `${SENSEFLOW_API_BASE}/api/phone-call/${callId}`,
+			json: true,
+		};
+
+		const response = (await this.helpers.httpRequestWithAuthentication.call(this, "senseFlowApi", requestOptions)) as IDataObject;
+
+		// Break once the call is finished. Adjust the condition based on the real API contract.
+		if (response.status === 'completed' || response.status === 'failed') {
+			return response;
+		}
+
+		/* istanbul ignore if -- guard against infinite loops */
+		if (Date.now() - startedAt > timeout) {
+			throw new NodeOperationError(this.getNode(), 'Waiting for phone call result timed out');
+		}
+
+		await new Promise((resolve) => setTimeout(resolve, pollingInterval));
+	}
+}
 
 export class SenseFlow implements INodeType {
 	description: INodeTypeDescription = {
