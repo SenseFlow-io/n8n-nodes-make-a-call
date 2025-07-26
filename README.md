@@ -22,11 +22,13 @@ Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes
 ### Make a Phone Call
 Starts a phone call and waits until it has completed. This operation combines starting a call and waiting for its result in a single step.
 
-### Start a Phone Call
-Starts a phone call without waiting for it to complete. Returns a call ID that can be used with the "Wait for Call Result" operation.
+### Get Call Status
+Fetches the current status for a previously-started phone call. The node has **two outputs**:
 
-### Wait for Call Result
-Waits until a previously-started phone call has completed. Requires a call ID from a previous "Start a Phone Call" operation.
+- **Ready** – The call has completed (success or failure).
+- **Not Ready** – The call is still in progress.
+
+Connect the **Not Ready** output back to the **Get Call Status** input (ideally through a *Wait* node) to poll until the execution is routed through **Ready**.
 
 ## Credentials
 
@@ -62,25 +64,11 @@ When making a phone call, you'll need to provide:
 
 **Note**: Our system includes safety measures to prevent spam, telemarketing, and fraud. If you believe your legitimate call was incorrectly flagged, please contact us for assistance.
 
-### Simple scenario - Making a phone call and waiting for result
+### Simple scenario – Make → Get Status loop
 
-1. Use the "Make a Phone Call" operation in the SenseFlow node.
-2. Fill in the required fields (To Number, Language, First Message, On Behalf Of, Goal, Context).
-3. Execute
-
-### Multiple calls
-For long-running calls or when you need to handle multiple calls simultaneously:
-
-1. Use the "Start a Phone Call" operation to initiate a call
-2. Store the returned call ID
-3. Use the "Wait for Call Result" operation with the call ID to get the final result
-
-### Example Workflow
-A typical workflow might involve:
-1. Triggering on a new booking or appointment
-2. Using the SenseFlow node to make a confirmation call
-3. Processing the call result (success/failure, conversation summary, etc.)
-4. Updating your system based on the call outcome
+1. Use the **Make a Phone Call** operation in the SenseFlow node. This will start the call and return the first result once the call has finished. Store the returned `id` if you need to check it later.
+2. (Optional) For long-running calls you can periodically run the **Get Call Status** operation with the stored `id`.
+3. Repeat step 2 until the execution leaves the **Not Ready** branch and arrives on **Ready**.
 
 For new users, check out the [Try it out](https://docs.n8n.io/try-it-out/) documentation to get started with n8n basics.
 

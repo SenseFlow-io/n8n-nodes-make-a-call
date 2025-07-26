@@ -99,7 +99,8 @@ export class SenseFlow implements INodeType {
 			name: 'SenseFlow',
 		},
 		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		outputs: [NodeConnectionType.Main, NodeConnectionType.Main],
+		outputNames: ['Ready', 'Not Ready'],
 		usableAsTool: true,
 			credentials: [
 		{
@@ -115,8 +116,7 @@ export class SenseFlow implements INodeType {
 				type: 'options',
 				options: [
 					{ name: 'Make a Phone Call',  value: 'makePhoneCall', description: 'Start a phone call and wait until it has completed', action: 'Make a phone call' },
-					{ name: 'Start a Phone Call',  value: 'startPhoneCall', description: 'Start a phone call without waiting for it to complete', action: 'Start a phone call' },
-					{ name: 'Wait for Call Result', value: 'waitForCallResult', description: 'Wait until the previously-started phone call has completed', action: 'Wait for a phone call to end' },
+					{ name: 'Get Call Status',    value: 'getCallStatus', description: 'Fetch the status of a previously started phone call', action: 'Get phone call status' },
 				],
 				default: 'makePhoneCall',
 				noDataExpression: true,
@@ -133,7 +133,7 @@ export class SenseFlow implements INodeType {
 				description: 'Destination phone number in E.164 format',
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
@@ -150,7 +150,7 @@ export class SenseFlow implements INodeType {
 				description: 'Language used by the voice agent',
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
@@ -164,7 +164,7 @@ export class SenseFlow implements INodeType {
 				description: 'Opening sentence the agent should start with',
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
@@ -178,7 +178,7 @@ export class SenseFlow implements INodeType {
 				description: 'Name of the person/company on whose behalf the call is made',
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
@@ -192,7 +192,7 @@ export class SenseFlow implements INodeType {
 				description: 'The end goal that the agent should try to achieve',
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
@@ -209,12 +209,12 @@ export class SenseFlow implements INodeType {
 				},
 				displayOptions: {
 					show: {
-						operation: ['makePhoneCall', 'startPhoneCall'],
+						operation: ['makePhoneCall'],
 					},
 				},
 			},
 
-			// Call ID (required when waiting for a call)
+			// Call ID (required when checking call status)
 			{
 				displayName: 'Call ID',
 				name: 'callId',
@@ -222,10 +222,10 @@ export class SenseFlow implements INodeType {
 				required: true,
 				default: '',
 				placeholder: '8f41d9f3-c1e4-4d0d-93ff-e70bc5b6b6a1',
-				description: 'Identifier returned by the "Start a Phone Call" operation',
+				description: 'Identifier returned by the "Make a Phone Call" operation',
 				displayOptions: {
 					show: {
-						operation: ['waitForCallResult'],
+						operation: ['getCallStatus'],
 					},
 				},
 			},
@@ -234,7 +234,8 @@ export class SenseFlow implements INodeType {
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
-		const returnItems: INodeExecutionData[] = [];
+		const readyItems: INodeExecutionData[] = [];
+		const notReadyItems: INodeExecutionData[] = [];
 
 		for (let itemIndex = 0; itemIndex < items.length; itemIndex++) {
 			const item = items[itemIndex];
@@ -256,39 +257,31 @@ export class SenseFlow implements INodeType {
 					const callId = await startPhoneCall.call(this, payload);
 					const result = await waitForPhoneCallCompletion.call(this, callId);
 
-					returnItems.push({
+					readyItems.push({
 						json: {
 							...item.json,
 							...result,
 						},
 					});
-				} else if (operation === 'startPhoneCall') {
-					const payload = {
-						to_number: this.getNodeParameter('toNumber', itemIndex) as string,
-						language: this.getNodeParameter('language', itemIndex) as string,
-						first_message: this.getNodeParameter('firstMessage', itemIndex) as string,
-						on_behalf_of: this.getNodeParameter('onBehalfOf', itemIndex) as string,
-						goal: this.getNodeParameter('goal', itemIndex) as string,
-						context: this.getNodeParameter('context', itemIndex) as string,
-					};
-					const callId = await startPhoneCall.call(this, payload);
-
-					returnItems.push({
-						json: {
-							...item.json,
-							id: callId,
-						},
-					});
-				} else if (operation === 'waitForCallResult') {
+				} else if (operation === 'getCallStatus') {
 					const callId = this.getNodeParameter('callId', itemIndex) as string;
-					const result = await waitForPhoneCallCompletion.call(this, callId);
 
-					returnItems.push({
+					const requestOptions = {
+						method: 'GET' as const,
+						url: `${SENSEFLOW_API_BASE}/api/phone-call/${callId}`,
+						json: true,
+					};
+
+					const response = (await this.helpers.httpRequestWithAuthentication.call(this, "senseFlowApi", requestOptions)) as IDataObject & { status?: string };
+
+					const isDone = response.status === 'completed' || response.status === 'failed';
+					(isDone ? readyItems : notReadyItems).push({
 						json: {
 							...item.json,
-							...result,
+							...response,
 						},
 					});
+					continue;
 				} else {
 					throw new NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`, { itemIndex });
 				}
@@ -306,12 +299,12 @@ export class SenseFlow implements INodeType {
 
 				// Keep "Continue On Fail" behaviour untouched
 				if (this.continueOnFail()) {
-					returnItems.push({
+					notReadyItems.push({
 						json: { ...items[itemIndex].json },
 						error: error as NodeApiError,
 						pairedItem: itemIndex,
 					});
-					return [returnItems];
+					continue;
 				}
 
 				// Fallback for any *other* unexpected error
@@ -319,6 +312,6 @@ export class SenseFlow implements INodeType {
 			}
 		}
 
-		return [returnItems];
+		return [readyItems, notReadyItems];
 	}
 }
