@@ -24,6 +24,13 @@ export class SenseFlow implements INodeType {
 		inputs: [NodeConnectionType.Main], // What does this mean?
 		outputs: [NodeConnectionType.Main], // What does this mean?
 		usableAsTool: true,
+			credentials: [
+		{
+			name: 'senseFlowApi',
+			required: true,
+			testedBy: 'senseFlowApi',
+		},
+	],
 		properties: [
 			{
 				displayName: 'Operation',
