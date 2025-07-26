@@ -91,7 +91,7 @@ export class SenseFlow implements INodeType {
 			light: 'file:logo.png',
 			dark: 'file:logo.png',
 		},
-		group: ['communication'],
+		group: ['operation'],
 		version: 1,
 		description: 'SenseFlow Node - Voice agent telephony at your fingertips',
 		defaults: {
@@ -231,10 +231,6 @@ export class SenseFlow implements INodeType {
 		],
 	};
 
-	// The function below is responsible for actually doing whatever this node
-	// is supposed to do. In this case, we're just appending the `myString` property
-	// with whatever the user has entered.
-	// You can make async calls and use `await`.
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const items = this.getInputData();
 		const returnItems: INodeExecutionData[] = [];
