@@ -1,6 +1,6 @@
 {
   "name": "@senseflow-io/n8n-nodes-senseflow",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "n8n community node for SenseFlow - simple agentic phone calls",
   "keywords": [
     "n8n-community-node-package"
@@ -38,7 +38,8 @@
       "dist/credentials/SenseFlowApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/SenseFlow/SenseFlow.node.js"
+      "dist/nodes/GetCallStatus/SenseFlowGetCallStatus.node.ts",
+      "dist/nodes/StartCall/SenseFlowStartCall.node.ts"
     ]
   },
   "devDependencies": {

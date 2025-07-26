@@ -17,18 +17,15 @@ SenseFlow is an AI-powered voice agent that allows you to make phone calls and m
 
 Follow the [installation guide](https://docs.n8n.io/integrations/community-nodes/installation/) in the n8n community nodes documentation.
 
-## Operations
+## Nodes
 
-### Make a Phone Call
-Starts a phone call and waits until it has completed. This operation combines starting a call and waiting for its result in a single step.
+### SenseFlow Start Call
+Starts a phone call and returns its call id.
 
-### Get Call Status
-Fetches the current status for a previously-started phone call. The node has **two outputs**:
-
-- **Ready** – The call has completed (success or failure).
-- **Not Ready** – The call is still in progress.
-
-Connect the **Not Ready** output back to the **Get Call Status** input (ideally through a *Wait* node) to poll until the execution is routed through **Ready**.
+### SenseFlow Get Call Status
+Checks the current status of a previously-started call. Has two outputs:
+- **Ready** – Call finished (success or failure)
+- **Not Ready** – Call still in progress
 
 ## Credentials
 
@@ -52,23 +49,9 @@ To use this node, you need to authenticate with SenseFlow using an API key.
 
 ## Usage
 
-### Basic Phone Call Setup
-When making a phone call, you'll need to provide:
-
-- **To Number**: The destination phone number in E.164 format (e.g., +15551234567)
-- **Language**: The language the voice agent should use (English or Czech)
-- **First Message**: The opening sentence the agent should start with
-- **On Behalf Of**: The name of the person/company on whose behalf the call is made
-- **Goal**: The desired outcome that the agent should try to achieve
-- **Context**: Additional relevant information to help the agent conduct the call
-
-**Note**: Our system includes safety measures to prevent spam, telemarketing, and fraud. If you believe your legitimate call was incorrectly flagged, please contact us for assistance.
-
-### Simple scenario – Make → Get Status loop
-
-1. Use the **Make a Phone Call** operation in the SenseFlow node. This will start the call and return the first result once the call has finished. Store the returned `id` if you need to check it later.
-2. (Optional) For long-running calls you can periodically run the **Get Call Status** operation with the stored `id`.
-3. Repeat step 2 until the execution leaves the **Not Ready** branch and arrives on **Ready**.
+### Typical loop
+1. Use **SenseFlow Make Call** to initiate the call. Save the returned `id` if you need to check again later.
+2. (Optional) Use **SenseFlow Get Call Status** with the `id` to poll for completion. Connect the **Not Ready** output back to the Get-Status node via a Wait node until it eventually routes via **Ready**.
 
 For new users, check out the [Try it out](https://docs.n8n.io/try-it-out/) documentation to get started with n8n basics.
 
