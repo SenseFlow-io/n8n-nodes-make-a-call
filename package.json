@@ -1,6 +1,6 @@
 {
   "name": "@senseflow-io/n8n-nodes-senseflow",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "n8n community node for SenseFlow - simple agentic phone calls",
   "keywords": [
     "n8n-community-node-package"
@@ -8,8 +8,9 @@
   "license": "MIT",
   "homepage": "https://github.com/SenseFlow-io/n8n-nodes-senseflow",
   "author": {
-    "name": "SenseFlow, Inc.",
-    "email": "call-me-maybe@senseflow.io"
+    "name": "Filip Kubis",
+    "email": "filip@senseflow.io",
+    "url": "https://github.com/FilipKubis"
   },
   "repository": {
     "type": "git",
