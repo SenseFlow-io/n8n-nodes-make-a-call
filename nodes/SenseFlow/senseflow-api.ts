@@ -38,13 +38,12 @@ const SENSEFLOW_API_BASE = 'https://app.senseflow.io';
 export async function startPhoneCall(this: IExecuteFunctions, payload: StartCallPayload): Promise<string> {
 	const requestOptions = {
 		method: 'POST' as const,
-		url: `/api/phone-call`,
-		baseUrl: (await this.getCredentials('senseFlowApi')).baseUrl as string,
+		url: `${SENSEFLOW_API_BASE}/api/phone-call/`,
 		body: payload as IDataObject,
 		json: true,
 	};
 
-	const response = (await this.helpers.httpRequestWithAuthentication("senseFlowApi", requestOptions)) as {
+	const response = (await this.helpers.httpRequestWithAuthentication.call(this, "senseFlowApi", requestOptions)) as {
 		id: string;
 	};
 
@@ -72,15 +71,14 @@ export async function waitForPhoneCallCompletion(
 	while (true) {
 		const requestOptions = {
 			method: 'GET' as const,
-			url: `/api/phone-call/${callId}`,
-			baseUrl: (await this.getCredentials('senseFlowApi')).baseUrl as string,
+			url: `${SENSEFLOW_API_BASE}/api/phone-call/${callId}`,
 			json: true,
 		};
 
-		const response = (await this.helpers.httpRequestWithAuthentication("senseFlowApi", requestOptions)) as IDataObject;
+		const response = (await this.helpers.httpRequestWithAuthentication.call(this, "senseFlowApi", requestOptions)) as IDataObject;
 
 		// Break once the call is finished. Adjust the condition based on the real API contract.
-		if (response.status !== 'pending' && response.status !== 'in_progress') {
+		if (response.status === 'completed' || response.status === 'failed') {
 			return response;
 		}
 

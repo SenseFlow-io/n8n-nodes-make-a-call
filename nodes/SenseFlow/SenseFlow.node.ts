@@ -3,6 +3,7 @@ import type {
 	INodeExecutionData,
 	INodeType,
 	INodeTypeDescription,
+	NodeApiError,
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
 import { startPhoneCall, waitForPhoneCallCompletion } from './senseflow-api';
@@ -186,7 +187,6 @@ export class SenseFlow implements INodeType {
 					returnItems.push({
 						json: {
 							...item.json,
-							callId,
 							...result,
 						},
 					});
@@ -204,7 +204,7 @@ export class SenseFlow implements INodeType {
 					returnItems.push({
 						json: {
 							...item.json,
-							callId,
+							id: callId,
 						},
 					});
 				} else if (operation === 'waitForCallResult') {
@@ -214,7 +214,6 @@ export class SenseFlow implements INodeType {
 					returnItems.push({
 						json: {
 							...item.json,
-							callId,
 							...result,
 						},
 					});
@@ -222,11 +221,29 @@ export class SenseFlow implements INodeType {
 					throw new NodeOperationError(this.getNode(), `Unsupported operation: ${operation}`, { itemIndex });
 				}
 			} catch (error) {
-				if (this.continueOnFail()) {
-					returnItems.push({ json: { ...items[itemIndex].json }, error, pairedItem: itemIndex });
-				} else {
-					throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
+				// Preserve useful API errors
+				if (error?.constructor?.name === 'NodeApiError') {
+					/*
+					 * Re-throw as-is.  n8n will automatically render
+					 *  • HTTP status code
+					 *  • Response body
+					 *  • Request URL + method
+					 */
+					throw error;
 				}
+
+				// Keep "Continue On Fail" behaviour untouched
+				if (this.continueOnFail()) {
+					returnItems.push({
+						json: { ...items[itemIndex].json },
+						error: error as NodeApiError,
+						pairedItem: itemIndex,
+					});
+					return [returnItems];
+				}
+
+				// Fallback for any *other* unexpected error
+				throw new NodeOperationError(this.getNode(), error as Error, { itemIndex });
 			}
 		}
 
