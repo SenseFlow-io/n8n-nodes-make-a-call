@@ -83,7 +83,7 @@ export class SenseFlow implements INodeType {
 				displayName: 'First Message',
 				name: 'firstMessage',
 				type: 'string',
-				default: 'Hi Bob, this is AI assistant for Alice Johnson calling.',
+				default: 'Hi John, this is the AI assistant calling on behalf of Berlin City Suites.',
 				placeholder: 'Opening sentence spoken by the agent',
 				description: 'Opening sentence the agent should start with',
 				displayOptions: {
@@ -97,8 +97,8 @@ export class SenseFlow implements INodeType {
 				displayName: 'On Behalf Of',
 				name: 'onBehalfOf',
 				type: 'string',
-				default: 'Alice Johnson',
-				placeholder: 'Alice Johnson',
+				default: 'Berlin City Suites',
+				placeholder: 'Berlin City Suites',
 				description: 'Name of the person/company on whose behalf the call is made',
 				displayOptions: {
 					show: {
@@ -111,7 +111,7 @@ export class SenseFlow implements INodeType {
 				displayName: 'Goal',
 				name: 'goal',
 				type: 'string',
-				default: 'Book a 30-minute meeting next week.',
+				default: 'Confirm John’s check-in time and note any special requests for booking PA-8721.',
 				placeholder: 'Desired outcome of the call',
 				description: 'The end goal that the agent should try to achieve',
 				displayOptions: {
@@ -125,7 +125,7 @@ export class SenseFlow implements INodeType {
 				displayName: 'Context',
 				name: 'context',
 				type: 'string',
-				default: '',
+				default: 'Guest name: John Miller\nBooking ID: PA-8721\nProperty: Brandenburg Gate View Suite\nArrival: 12 Aug 2025 (3 nights)\nGuest requested: late checkout.',
 				placeholder: 'Additional relevant information for the agent',
 				description: 'Contextual information to help the agent conduct the call',
 				typeOptions: {
