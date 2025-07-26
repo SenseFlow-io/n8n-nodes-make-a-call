@@ -16,23 +16,30 @@
 
 import type { IDataObject, IExecuteFunctions } from 'n8n-workflow';
 
+export interface StartCallPayload extends IDataObject {
+    to_number: string;
+    language: string;
+    first_message?: string;
+    on_behalf_of?: string;
+    goal?: string;
+    context?: string;
+}
+
 const SENSEFLOW_API_BASE = 'https://app.senseflow.io';
 
 /**
- * Starts a phone call by POST-ing the phone number to the SenseFlow REST API.
+ * Starts a phone call by POST-ing the full call specification to the SenseFlow REST API.
  *
  * @param this        n8n execution context (make sure to `.call(this, ...)` when invoking)
- * @param phoneNumber The number to call (E.164 format recommended)
+ * @param payload     The full call payload as required by SenseFlow
  *
  * @returns The unique identifier (`id`) of the created phone-call job
  */
-export async function startPhoneCall(this: IExecuteFunctions, phoneNumber: string): Promise<string> {
+export async function startPhoneCall(this: IExecuteFunctions, payload: StartCallPayload): Promise<string> {
 	const requestOptions = {
 		method: 'POST' as const,
 		url: `${SENSEFLOW_API_BASE}/api/phone-call`,
-		body: {
-			phoneNumber,
-		} as IDataObject,
+		body: payload as IDataObject,
 		json: true,
 	};
 

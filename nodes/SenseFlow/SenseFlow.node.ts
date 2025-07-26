@@ -34,15 +34,91 @@ export class SenseFlow implements INodeType {
 				noDataExpression: true,
 			},
 
-			// Phone Number (required when starting a call)
+			// To Number (required when starting a call)
 			{
-				displayName: 'Phone Number',
-				name: 'phoneNumber',
+				displayName: 'To Number',
+				name: 'toNumber',
 				type: 'string',
 				required: true,
-				default: '',
+				default: '+15551234567',
 				placeholder: '+15551234567',
-				description: 'Number to call in E.164 format',
+				description: 'Destination phone number in E.164 format',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Language',
+				name: 'language',
+				type: 'options',
+				options: [
+					{ name: 'English', value: 'en' },
+					{ name: 'Czech',   value: 'cs' },
+				],
+				default: 'en',
+				description: 'Language used by the voice agent',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			{
+				displayName: 'First Message',
+				name: 'firstMessage',
+				type: 'string',
+				default: 'Hi Bob, this is AI assistant for Alice Johnson calling.',
+				placeholder: 'Opening sentence spoken by the agent',
+				description: 'Opening sentence the agent should start with',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			{
+				displayName: 'On Behalf Of',
+				name: 'onBehalfOf',
+				type: 'string',
+				default: 'Alice Johnson',
+				placeholder: 'Alice Johnson',
+				description: 'Name of the person/company on whose behalf the call is made',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Goal',
+				name: 'goal',
+				type: 'string',
+				default: 'Book a 30-minute meeting next week.',
+				placeholder: 'Desired outcome of the call',
+				description: 'The end goal that the agent should try to achieve',
+				displayOptions: {
+					show: {
+						operation: ['makePhoneCall', 'startPhoneCall'],
+					},
+				},
+			},
+
+			{
+				displayName: 'Context',
+				name: 'context',
+				type: 'string',
+				default: '',
+				placeholder: 'Additional relevant information for the agent',
+				description: 'Contextual information to help the agent conduct the call',
+				typeOptions: {
+					rows: 4,
+				},
 				displayOptions: {
 					show: {
 						operation: ['makePhoneCall', 'startPhoneCall'],
@@ -83,10 +159,17 @@ export class SenseFlow implements INodeType {
 				const operation = this.getNodeParameter('operation', itemIndex) as string;
 
 				if (operation === 'makePhoneCall') {
-					const phoneNumber = this.getNodeParameter('phoneNumber', itemIndex) as string;
+					const payload = {
+						to_number: this.getNodeParameter('toNumber', itemIndex) as string,
+						language: this.getNodeParameter('language', itemIndex) as string,
+						first_message: this.getNodeParameter('firstMessage', itemIndex) as string,
+						on_behalf_of: this.getNodeParameter('onBehalfOf', itemIndex) as string,
+						goal: this.getNodeParameter('goal', itemIndex) as string,
+						context: this.getNodeParameter('context', itemIndex) as string,
+					};
 
 					// 1) Start the call, 2) wait for completion
-					const callId = await startPhoneCall.call(this, phoneNumber);
+					const callId = await startPhoneCall.call(this, payload);
 					const result = await waitForPhoneCallCompletion.call(this, callId);
 
 					returnItems.push({
@@ -97,8 +180,15 @@ export class SenseFlow implements INodeType {
 						},
 					});
 				} else if (operation === 'startPhoneCall') {
-					const phoneNumber = this.getNodeParameter('phoneNumber', itemIndex) as string;
-					const callId = await startPhoneCall.call(this, phoneNumber);
+					const payload = {
+						to_number: this.getNodeParameter('toNumber', itemIndex) as string,
+						language: this.getNodeParameter('language', itemIndex) as string,
+						first_message: this.getNodeParameter('firstMessage', itemIndex) as string,
+						on_behalf_of: this.getNodeParameter('onBehalfOf', itemIndex) as string,
+						goal: this.getNodeParameter('goal', itemIndex) as string,
+						context: this.getNodeParameter('context', itemIndex) as string,
+					};
+					const callId = await startPhoneCall.call(this, payload);
 
 					returnItems.push({
 						json: {
