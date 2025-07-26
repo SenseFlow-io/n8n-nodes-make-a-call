@@ -6,20 +6,37 @@ import type {
 } from 'n8n-workflow';
 import { NodeConnectionType, NodeOperationError } from 'n8n-workflow';
 
-export class ExampleNode implements INodeType {
+export class SenseFlow implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Example Node',
-		name: 'exampleNode',
+		displayName: 'SenseFlow',
+		name: 'senseFlow',
 		group: ['transform'],
 		version: 1,
-		description: 'Basic Example Node',
+		description: 'SenseFlow Node - Voice agent telephony at your fingertips',
 		defaults: {
-			name: 'Example Node',
+			name: 'SenseFlow',
 		},
-		inputs: [NodeConnectionType.Main],
-		outputs: [NodeConnectionType.Main],
+		inputs: [NodeConnectionType.Main], // What does this mean?
+		outputs: [NodeConnectionType.Main], // What does this mean?
 		usableAsTool: true,
 		properties: [
+
+			/* 1 — Choosing an operation */
+			{
+				displayName: 'Operation',
+				name: 'operation',
+				type: 'options',
+				displayOptions: { show: { resource: ['job'] } },
+				/* “action” label is what n8n shows in the left sidebar */
+				options: [
+					{ name: 'Make a Phone Call',  value: 'makePhoneCall', description: 'Make a phone call and wait for the result', action: 'Make a phone call' },
+					{ name: 'Start a Phone Call',  value: 'startPhoneCall', action: 'Start a phone call' },
+					{ name: 'Wait for Call Result', value: 'waitForCallResult', action: 'Wait for a phone call to end' },
+				],
+				noDataExpression: true,
+				default: 'makePhoneCall',
+			},
+
 			// Node properties which the user gets displayed and
 			// can change on the node.
 			{
