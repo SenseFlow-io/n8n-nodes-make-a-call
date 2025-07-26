@@ -11,6 +11,10 @@ export class SenseFlow implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'SenseFlow',
 		name: 'senseFlow',
+		icon: {
+			light: 'file:logo.png',
+			dark: 'file:logo.png',
+		},
 		group: ['transform'],
 		version: 1,
 		description: 'SenseFlow Node - Voice agent telephony at your fingertips',
