@@ -38,8 +38,8 @@
       "dist/credentials/SenseFlowApi.credentials.js"
     ],
     "nodes": [
-      "dist/nodes/GetCallStatus/SenseFlowGetCallStatus.node.ts",
-      "dist/nodes/StartCall/SenseFlowStartCall.node.ts"
+      "dist/nodes/GetCallStatus/SenseFlowGetCallStatus.node.js",
+      "dist/nodes/StartCall/SenseFlowStartCall.node.js"
     ]
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
 export * from './dist/credentials/SenseFlowApi.credentials';
-export * from './nodes/GetCallStatus/SenseFlowGetCallStatus.node.ts';
-export * from './nodes/StartCall/SenseFlowStartCall.node.ts';
+export * from './dist/nodes/GetCallStatus/SenseFlowGetCallStatus.node.js';
+export * from './dist/nodes/StartCall/SenseFlowStartCall.node.js';
 
